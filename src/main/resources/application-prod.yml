@@ -1,0 +1,24 @@
+spring:
+  jpa:
+    show-sql: false
+
+server:
+  shutdown: graceful
+  compression:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: WARN
+    com.grootan.storeflow: INFO
+  pattern:
+    console: "%d{ISO8601} [%X{traceId}] %-5level %logger{36} - %msg%n"

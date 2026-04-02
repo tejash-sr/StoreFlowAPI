@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:storeflow_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
+
+  mail:
+    host: localhost
+    port: 3025
+
+management:
+  health:
+    mail:
+      enabled: false
+
+jwt:
+  secret: test-secret-key-that-is-at-least-256-bits-long-for-hmac-sha256-algorithm
+  access-token-expiry: 900
+  refresh-token-expiry: 604800
+
+logging:
+  level:
+    root: WARN
+    com.grootan.storeflow: INFO

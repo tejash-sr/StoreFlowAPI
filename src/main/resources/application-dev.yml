@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  mail:
+    host: localhost
+    port: 3025
+
+logging:
+  level:
+    com.grootan.storeflow: DEBUG
+    org.springframework.security: DEBUG
