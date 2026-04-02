@@ -1,0 +1,102 @@
+# ===========================
+# StoreFlow API — .gitignore
+# ===========================
+
+# Maven build output
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Gradle build output
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Java compiled files
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE — IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+# IDE — Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+# IDE — VS Code
+.vscode/
+*.code-workspace
+
+# Environment / Secrets — NEVER commit these
+*.env
+.env
+.env.local
+.env.*.local
+application-local.yml
+application-local.yaml
+application-local.properties
+**/secret*.yml
+**/secret*.yaml
+
+# Flyway (no compiled schemas)
+flyway.conf
+
+# Logs
+logs/
+*.log
+*.log.gz
+*.out
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Uploaded files (local storage — not in source control)
+uploads/
+attachments/
+
+# JaCoCo coverage reports (generated at build time)
+# Kept excluded since they are generated artifacts
+# Uncomment below to also exclude HTML report:
+# target/site/
+
+# Test output
+surefire-reports/
+failsafe-reports/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Docker
+docker-compose.override.yml
+
+# Postman — include the collection file (not environment files with secrets)
+!postman/*.json
+postman/*environment*.json
