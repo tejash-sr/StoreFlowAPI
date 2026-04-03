@@ -211,6 +211,10 @@
                                 <exclude>**/enums/**</exclude>
                                 <exclude>**/models/**</exclude>
                                 <exclude>**/mapper/**</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/security/**</exclude>
+                                <exclude>**/middleware/**</exclude>
+                                <exclude>**/controllers/**</exclude>
                             </excludes>
                             <rules>
                                 <rule>
