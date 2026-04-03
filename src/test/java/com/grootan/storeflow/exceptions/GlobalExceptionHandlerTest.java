@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,5 +59,39 @@ class GlobalExceptionHandlerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody().getStatus()).isEqualTo(409);
+    }
+
+    @Test
+    void handleValidationException_returns400WithErrors() {
+        org.springframework.validation.BindingResult bindingResult = mock(org.springframework.validation.BindingResult.class);
+        org.springframework.validation.FieldError fieldError = new org.springframework.validation.FieldError("objectName", "field", "message");
+        when(bindingResult.getFieldErrors()).thenReturn(java.util.List.of(fieldError));
+        org.springframework.web.bind.MethodArgumentNotValidException ex = mock(org.springframework.web.bind.MethodArgumentNotValidException.class);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+
+        ResponseEntity<ErrorResponse> response = handler.handleValidationException(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().getStatus()).isEqualTo(400);
+        assertThat(response.getBody().getErrors()).containsKey("field");
+        assertThat(response.getBody().getErrors().get("field")).isEqualTo("message");
+    }
+
+    @Test
+    void handleDataIntegrityViolation_returns409() {
+        org.springframework.dao.DataIntegrityViolationException ex = new org.springframework.dao.DataIntegrityViolationException("unique constraint violated", new RuntimeException("duplicate key value violates unique constraint \"users_email_key\""));
+        ResponseEntity<ErrorResponse> response = handler.handleDataIntegrityViolation(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody().getStatus()).isEqualTo(409);
+    }
+
+    @Test
+    void handleJwtException_returns401() {
+        io.jsonwebtoken.JwtException ex = new io.jsonwebtoken.JwtException("Invalid token");
+        ResponseEntity<ErrorResponse> response = handler.handleJwtException(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody().getStatus()).isEqualTo(401);
     }
 }

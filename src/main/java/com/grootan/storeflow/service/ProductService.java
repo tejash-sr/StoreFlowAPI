@@ -9,9 +9,13 @@ import java.util.UUID;
 
 public interface ProductService {
     ProductResponseDto createProduct(ProductRequestDto requestDto);
-    Page<ProductResponseDto> getAllProducts(String category, String status, Double minPrice, Double maxPrice, Pageable pageable);
+    Page<ProductResponseDto> getAllProducts(String name, String category, String status, Double minPrice, Double maxPrice, Pageable pageable);
+    java.util.List<ProductResponseDto> getLowStockProducts(int threshold);
     ProductResponseDto getProductById(UUID id);
     ProductResponseDto updateProduct(UUID id, ProductRequestDto requestDto);
     ProductResponseDto updateStock(UUID id, StockUpdateRequestDto requestDto);
     void deleteProduct(UUID id);
+    
+    ProductResponseDto uploadProductImage(UUID id, org.springframework.web.multipart.MultipartFile file);
+    org.springframework.core.io.Resource getProductImage(UUID id);
 }

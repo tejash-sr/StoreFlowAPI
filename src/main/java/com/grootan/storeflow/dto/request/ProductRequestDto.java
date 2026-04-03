@@ -8,6 +8,10 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.grootan.storeflow.models.Category;
+import com.grootan.storeflow.validation.ExistsInDatabase;
+import com.grootan.storeflow.validation.ValidSku;
+
 @Data
 public class ProductRequestDto {
     @NotBlank(message = "Product name is required")
@@ -17,6 +21,7 @@ public class ProductRequestDto {
     private String description;
     
     @NotBlank(message = "SKU is required")
+    @ValidSku
     private String sku;
     
     @NotNull(message = "Price is required")
@@ -28,6 +33,7 @@ public class ProductRequestDto {
     private Integer stock;
     
     @NotNull(message = "Category ID is required")
+    @ExistsInDatabase(entityClass = Category.class, message = "Category does not exist")
     private UUID categoryId;
     
     private String imageUrl;

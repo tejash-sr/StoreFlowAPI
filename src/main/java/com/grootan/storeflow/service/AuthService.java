@@ -11,4 +11,6 @@ public interface AuthService {
     void forgotPassword(ForgotPasswordRequestDto request);
     void resetPassword(String token, ResetPasswordRequestDto request);
     UserResponseDto getCurrentUser();
+    UserResponseDto uploadAvatar(org.springframework.web.multipart.MultipartFile file);
+    org.springframework.core.io.Resource getAvatar();
 }

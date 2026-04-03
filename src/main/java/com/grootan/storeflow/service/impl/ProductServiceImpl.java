@@ -27,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final com.grootan.storeflow.service.FileStorageService fileStorageService;
 
     @Override
     @Transactional
@@ -49,9 +50,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDto> getAllProducts(String category, String status, Double minPrice, Double maxPrice, Pageable pageable) {
-        // Simple findAll for now; advanced specification querying in Phase 7
-        return productRepository.findAll(pageable).map(productMapper::toDto);
+    public Page<ProductResponseDto> getAllProducts(String name, String category, String status, Double minPrice, Double maxPrice, Pageable pageable) {
+        org.springframework.data.jpa.domain.Specification<Product> spec = org.springframework.data.jpa.domain.Specification
+                .where(com.grootan.storeflow.repository.ProductSpecification.hasNamePartial(name))
+                .and(com.grootan.storeflow.repository.ProductSpecification.hasCategory(category))
+                .and(com.grootan.storeflow.repository.ProductSpecification.hasStatus(status))
+                .and(com.grootan.storeflow.repository.ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+
+        return productRepository.findAll(spec, pageable).map(productMapper::toDto);
     }
 
     @Override
@@ -60,6 +66,14 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         return productMapper.toDto(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<ProductResponseDto> getLowStockProducts(int threshold) {
+        return productRepository.findLowStockProducts(threshold).stream()
+                .map(productMapper::toDto)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -107,5 +121,27 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.DISCONTINUED);
         product.setDeletedAt(OffsetDateTime.now());
         productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponseDto uploadProductImage(UUID id, org.springframework.web.multipart.MultipartFile file) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        String fileName = fileStorageService.saveFile(file, "products");
+        product.setImageUrl(fileName);
+        productRepository.save(product);
+        return productMapper.toDto(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource getProductImage(UUID id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        if (product.getImageUrl() == null) {
+            throw new ResourceNotFoundException("No image found for product with id: " + id);
+        }
+        return fileStorageService.loadFile(product.getImageUrl(), "products");
     }
 }
