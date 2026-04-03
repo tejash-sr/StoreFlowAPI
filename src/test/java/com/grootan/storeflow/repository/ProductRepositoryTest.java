@@ -13,9 +13,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@ActiveProfiles("test")
-public class ProductRepositoryTest {
+import com.grootan.storeflow.AbstractRepositoryTest;
+
+public class ProductRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private ProductRepository productRepository;

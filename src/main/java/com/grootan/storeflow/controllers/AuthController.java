@@ -46,4 +46,19 @@ public class AuthController {
     public UserResponseDto getCurrentUser() {
         return authService.getCurrentUser();
     }
+
+    @PostMapping(value = "/me/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserResponseDto uploadAvatar(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        return authService.uploadAvatar(file);
+    }
+
+    @GetMapping("/me/avatar")
+    public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> getAvatar() {
+        org.springframework.core.io.Resource resource = authService.getAvatar();
+        String contentType = "image/jpeg";
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
 }

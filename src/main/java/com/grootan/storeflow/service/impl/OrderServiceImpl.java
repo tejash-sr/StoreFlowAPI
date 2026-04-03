@@ -9,6 +9,7 @@ import com.grootan.storeflow.exceptions.InsufficientStockException;
 import com.grootan.storeflow.exceptions.InvalidStatusTransitionException;
 import com.grootan.storeflow.exceptions.ResourceNotFoundException;
 import com.grootan.storeflow.mapper.OrderMapper;
+import com.grootan.storeflow.metrics.OrderMetrics;
 import com.grootan.storeflow.models.Order;
 import com.grootan.storeflow.models.OrderItem;
 import com.grootan.storeflow.models.Product;
@@ -17,6 +18,7 @@ import com.grootan.storeflow.repository.OrderItemRepository;
 import com.grootan.storeflow.repository.OrderRepository;
 import com.grootan.storeflow.repository.ProductRepository;
 import com.grootan.storeflow.repository.UserRepository;
+import com.grootan.storeflow.service.NotificationService;
 import com.grootan.storeflow.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,12 +40,24 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
+    private final NotificationService notificationService;
+    private final OrderMetrics orderMetrics;
 
     @Override
     @Transactional
     public OrderResponseDto placeOrder(UUID customerId, OrderRequestDto requestDto) {
         User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + customerId));
+
+        List<Product> products = new ArrayList<>();
+        for (OrderItemRequestDto itemDto : requestDto.getItems()) {
+            Product product = productRepository.findById(itemDto.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
+            if (product.getStock() < itemDto.getQuantity()) {
+                throw new InsufficientStockException(product.getSku(), itemDto.getQuantity(), product.getStock());
+            }
+            products.add(product);
+        }
 
         Order order = new Order();
         order.setReferenceNumber("ORD-" + System.currentTimeMillis());
@@ -57,15 +71,10 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> items = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        for (OrderItemRequestDto itemDto : requestDto.getItems()) {
-            Product product = productRepository.findById(itemDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
+        for (int i = 0; i < requestDto.getItems().size(); i++) {
+            OrderItemRequestDto itemDto = requestDto.getItems().get(i);
+            Product product = products.get(i);
 
-            if (product.getStock() < itemDto.getQuantity()) {
-                throw new InsufficientStockException(product.getSku(), itemDto.getQuantity(), product.getStock());
-            }
-
-            // Deduct stock
             product.setStock(product.getStock() - itemDto.getQuantity());
             productRepository.save(product);
 
@@ -86,13 +95,14 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         
         Order savedOrder = orderRepository.save(order);
+        orderMetrics.recordOrderPlaced(savedOrder.getTotalAmount());
         return orderMapper.toDto(savedOrder);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<OrderResponseDto> getOrdersForUser(UUID customerId, Pageable pageable) {
-        return orderRepository.findAll(pageable).map(orderMapper::toDto); // Will switch to findByCustomer when auth comes
+        return orderRepository.findAll(pageable).map(orderMapper::toDto);
     }
 
     @Override
@@ -116,14 +126,15 @@ public class OrderServiceImpl implements OrderService {
             throw new com.grootan.storeflow.exceptions.AppException("Invalid status provided", org.springframework.http.HttpStatus.BAD_REQUEST);
         }
         
-        // Very basic valid transition check (Phase 3 requirements)
-        // e.g. CANCELLED -> DELIVERED is invalid.
-        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.DELIVERED) {
-            throw new InvalidStatusTransitionException(order.getStatus().name(), newStatus.name());
+        OrderStatus previousStatus = order.getStatus();
+        if (previousStatus == OrderStatus.CANCELLED || previousStatus == OrderStatus.DELIVERED) {
+            throw new InvalidStatusTransitionException(previousStatus.name(), newStatus.name());
         }
         
         order.setStatus(newStatus);
         Order savedOrder = orderRepository.save(order);
+        
+        notificationService.notifyOrderStatusChange(savedOrder.getId(), newStatus.name());
         
         return orderMapper.toDto(savedOrder);
     }
