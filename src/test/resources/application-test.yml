@@ -13,13 +13,6 @@ spring:
   flyway:
     enabled: false
 
-  mail:
-    host: localhost
-    port: 3025
-    properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
-
 management:
   health:
     mail:

@@ -9,7 +9,6 @@ import com.grootan.storeflow.exceptions.InsufficientStockException;
 import com.grootan.storeflow.exceptions.InvalidStatusTransitionException;
 import com.grootan.storeflow.exceptions.ResourceNotFoundException;
 import com.grootan.storeflow.mapper.OrderMapper;
-import com.grootan.storeflow.metrics.OrderMetrics;
 import com.grootan.storeflow.models.Order;
 import com.grootan.storeflow.models.OrderItem;
 import com.grootan.storeflow.models.Product;
@@ -18,7 +17,6 @@ import com.grootan.storeflow.repository.OrderItemRepository;
 import com.grootan.storeflow.repository.OrderRepository;
 import com.grootan.storeflow.repository.ProductRepository;
 import com.grootan.storeflow.repository.UserRepository;
-import com.grootan.storeflow.service.NotificationService;
 import com.grootan.storeflow.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,8 +38,6 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
-    private final NotificationService notificationService;
-    private final OrderMetrics orderMetrics;
 
     @Override
     @Transactional
@@ -95,7 +91,6 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         
         Order savedOrder = orderRepository.save(order);
-        orderMetrics.recordOrderPlaced(savedOrder.getTotalAmount());
         return orderMapper.toDto(savedOrder);
     }
 
@@ -133,8 +128,6 @@ public class OrderServiceImpl implements OrderService {
         
         order.setStatus(newStatus);
         Order savedOrder = orderRepository.save(order);
-        
-        notificationService.notifyOrderStatusChange(savedOrder.getId(), newStatus.name());
         
         return orderMapper.toDto(savedOrder);
     }

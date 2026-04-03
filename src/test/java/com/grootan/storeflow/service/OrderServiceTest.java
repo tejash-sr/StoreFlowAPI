@@ -41,8 +41,6 @@ public class OrderServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private OrderMapper orderMapper;
-    @Mock private com.grootan.storeflow.service.NotificationService notificationService;
-    @Mock private com.grootan.storeflow.metrics.OrderMetrics orderMetrics;
 
     @InjectMocks private OrderServiceImpl orderService;
 
