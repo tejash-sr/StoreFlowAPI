@@ -22,17 +22,18 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponseDto placeOrder(@Valid @RequestBody OrderRequestDto requestDto) {
-        // Hardcoded admin customer until auth is added in Phase 4
-        // Assume customer setup happens in tests/db scripts
-        UUID customerId = UUID.fromString("00000000-0000-0000-0000-000000000001"); 
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        com.grootan.storeflow.security.CustomUserDetails userDetails = (com.grootan.storeflow.security.CustomUserDetails) auth.getPrincipal();
+        UUID customerId = userDetails.getUser().getId(); 
         
-        // Let user setup dynamically in test context. For actual endpoint this will be mocked safely in test
         return orderService.placeOrder(customerId, requestDto);
     }
 
     @GetMapping
     public Page<OrderResponseDto> getOrders(Pageable pageable) {
-        UUID customerId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        com.grootan.storeflow.security.CustomUserDetails userDetails = (com.grootan.storeflow.security.CustomUserDetails) auth.getPrincipal();
+        UUID customerId = userDetails.getUser().getId();
         return orderService.getOrdersForUser(customerId, pageable);
     }
 

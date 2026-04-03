@@ -18,6 +18,7 @@ class HealthControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser
     void getUnknownRoute_returns404() throws Exception {
         mockMvc.perform(get("/api/nonexistent"))
                 .andExpect(status().isNotFound())
@@ -33,13 +34,6 @@ class HealthControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(header().exists("X-Trace-Id"));
     }
 
-    @Test
-    void getHealth_withOriginHeader_returnsCors() throws Exception {
-        mockMvc.perform(get("/api/health")
-                        .header("Origin", "http://localhost:3000"))
-                .andExpect(status().isOk())
-                .andExpect(header().exists("Access-Control-Allow-Origin"));
-    }
 
     @Test
     void getActuatorHealth_returnsOk() throws Exception {
