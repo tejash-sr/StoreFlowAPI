@@ -12,6 +12,7 @@ import com.grootan.storeflow.repository.UserRepository;
 import com.grootan.storeflow.security.CustomUserDetails;
 import com.grootan.storeflow.security.JwtUtil;
 import com.grootan.storeflow.service.AuthService;
+import com.grootan.storeflow.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
     private final UserDetailsService userDetailsService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -58,6 +60,8 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtUtil.generateToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullName());
 
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
@@ -112,6 +116,7 @@ public class AuthServiceImpl implements AuthService {
             user.setResetToken(token);
             user.setResetTokenExpiresAt(OffsetDateTime.now().plusHours(1));
             userRepository.save(user);
+            emailService.sendPasswordResetEmail(user.getEmail(), token);
         }
     }
 

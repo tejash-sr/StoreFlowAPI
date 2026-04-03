@@ -9,6 +9,7 @@ import com.grootan.storeflow.exceptions.InsufficientStockException;
 import com.grootan.storeflow.exceptions.InvalidStatusTransitionException;
 import com.grootan.storeflow.exceptions.ResourceNotFoundException;
 import com.grootan.storeflow.mapper.OrderMapper;
+import com.grootan.storeflow.metrics.OrderMetrics;
 import com.grootan.storeflow.models.Order;
 import com.grootan.storeflow.models.OrderItem;
 import com.grootan.storeflow.models.Product;
@@ -40,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
     private final NotificationService notificationService;
+    private final OrderMetrics orderMetrics;
 
     @Override
     @Transactional
@@ -93,6 +95,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         
         Order savedOrder = orderRepository.save(order);
+        orderMetrics.recordOrderPlaced(savedOrder.getTotalAmount());
         return orderMapper.toDto(savedOrder);
     }
 
