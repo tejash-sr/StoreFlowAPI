@@ -10,16 +10,20 @@ import com.grootan.storeflow.models.Category;
 import com.grootan.storeflow.models.Product;
 import com.grootan.storeflow.repository.CategoryRepository;
 import com.grootan.storeflow.repository.ProductRepository;
+import com.grootan.storeflow.repository.ProductSpecification;
 import com.grootan.storeflow.service.FileStorageService;
 import com.grootan.storeflow.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,8 +55,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable).map(productMapper::toDto);
+    public Page<ProductResponseDto> getAllProducts(String name, String category, String status, Double minPrice, Double maxPrice, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasNamePartial(name))
+                .and(ProductSpecification.hasCategory(category))
+                .and(ProductSpecification.hasStatus(status))
+                .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+
+        return productRepository.findAll(spec, pageable).map(productMapper::toDto);
     }
 
     @Override
@@ -61,6 +71,14 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         return productMapper.toDto(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponseDto> getLowStockProducts(int threshold) {
+        return productRepository.findLowStockProducts(threshold).stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

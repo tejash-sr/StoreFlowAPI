@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,8 +27,14 @@ public class ProductController {
     }
 
     @GetMapping
-    public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
-        return productService.getAllProducts(pageable);
+    public Page<ProductResponseDto> getAllProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            Pageable pageable) {
+        return productService.getAllProducts(name, category, status, minPrice, maxPrice, pageable);
     }
 
     @GetMapping("/{id}")
