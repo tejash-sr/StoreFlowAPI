@@ -38,8 +38,6 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
     private final UserDetailsService userDetailsService;
-    private final com.grootan.storeflow.service.FileStorageService fileStorageService;
-    private final com.grootan.storeflow.service.EmailService emailService;
 
     @Override
     @Transactional
@@ -60,8 +58,6 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtUtil.generateToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-
-        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullName());
 
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
@@ -116,7 +112,6 @@ public class AuthServiceImpl implements AuthService {
             user.setResetToken(token);
             user.setResetTokenExpiresAt(OffsetDateTime.now().plusHours(1));
             userRepository.save(user);
-            emailService.sendPasswordResetEmail(user.getEmail(), token);
         }
     }
 
@@ -141,33 +136,6 @@ public class AuthServiceImpl implements AuthService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
             return userMapper.toDto(((CustomUserDetails) auth.getPrincipal()).getUser());
-        }
-        throw new AuthenticationFailedException("User not authenticated");
-    }
-
-    @Override
-    @Transactional
-    public UserResponseDto uploadAvatar(org.springframework.web.multipart.MultipartFile file) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
-            User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-            String fileName = fileStorageService.saveAvatar(file, "avatars");
-            user.setAvatarPath(fileName);
-            userRepository.save(user);
-            return userMapper.toDto(user);
-        }
-        throw new AuthenticationFailedException("User not authenticated");
-    }
-
-    @Override
-    public org.springframework.core.io.Resource getAvatar() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
-            User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-            if (user.getAvatarPath() == null) {
-                throw new com.grootan.storeflow.exceptions.ResourceNotFoundException("No avatar found for user: " + user.getId());
-            }
-            return fileStorageService.loadFile(user.getAvatarPath(), "avatars");
         }
         throw new AuthenticationFailedException("User not authenticated");
     }

@@ -56,24 +56,4 @@ public class OrderController {
     public OrderResponseDto updateOrderStatus(@PathVariable UUID id, @Valid @RequestBody OrderStatusUpdateRequestDto requestDto) {
         return orderService.updateOrderStatus(id, requestDto);
     }
-
-    @GetMapping("/{id}/pdf")
-    public org.springframework.http.ResponseEntity<byte[]> downloadOrderPdf(@PathVariable UUID id, @org.springframework.beans.factory.annotation.Autowired com.grootan.storeflow.service.PdfGenerationService pdfGenerationService) {
-        OrderResponseDto order = orderService.getOrderById(id);
-        byte[] pdf = pdfGenerationService.generateOrderSummaryPdf(order);
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "order-" + order.getReferenceNumber() + ".pdf");
-        return new org.springframework.http.ResponseEntity<>(pdf, headers, HttpStatus.OK);
-    }
-
-    @GetMapping("/export")
-    public org.springframework.http.ResponseEntity<byte[]> exportOrders(Pageable pageable, @org.springframework.beans.factory.annotation.Autowired com.grootan.storeflow.service.CsvExportService csvExportService) {
-        Page<OrderResponseDto> orders = orderService.getOrdersForUser(getAuthenticatedUserId(), pageable);
-        byte[] csv = csvExportService.exportOrdersToCsv(orders);
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.parseMediaType("text/csv"));
-        headers.setContentDispositionFormData("attachment", "orders.csv");
-        return new org.springframework.http.ResponseEntity<>(csv, headers, HttpStatus.OK);
-    }
 }
