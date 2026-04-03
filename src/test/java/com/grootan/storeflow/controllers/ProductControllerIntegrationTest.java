@@ -1,6 +1,7 @@
 package com.grootan.storeflow.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grootan.storeflow.TestMailConfig;
 import com.grootan.storeflow.dto.request.ProductRequestDto;
 import com.grootan.storeflow.dto.request.StockUpdateRequestDto;
 import com.grootan.storeflow.models.Category;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(TestMailConfig.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

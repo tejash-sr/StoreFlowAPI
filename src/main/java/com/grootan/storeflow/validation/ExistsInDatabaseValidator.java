@@ -7,11 +7,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class ExistsInDatabaseValidator implements ConstraintValidator<ExistsInDatabase, Object> {
 
     private final EntityManager entityManager;
     private Class<?> entityClass;
+
+    public ExistsInDatabaseValidator(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
 
     @Override
     public void initialize(ExistsInDatabase constraintAnnotation) {

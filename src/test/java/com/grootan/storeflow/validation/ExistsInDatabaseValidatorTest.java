@@ -20,7 +20,7 @@ public class ExistsInDatabaseValidatorTest {
         validator = new ExistsInDatabaseValidator(entityManager);
         
         ExistsInDatabase annotation = mock(ExistsInDatabase.class);
-        doReturn(Object.class).when(annotation).entityClass();
+        doReturn((Class<?>) Object.class).when(annotation).entityClass();
         validator.initialize(annotation);
         
         context = mock(ConstraintValidatorContext.class);
@@ -67,13 +67,12 @@ public class ExistsInDatabaseValidatorTest {
     
     @Test
     void initialize_setsEntityClass() {
-        // Just executing the flow to test initialization sets the correct class context
         ExistsInDatabase annotation = mock(ExistsInDatabase.class);
-        doReturn(String.class).when(annotation).entityClass();
+        doReturn((Class<?>) Object.class).when(annotation).entityClass();
         
         validator.initialize(annotation);
         
-        when(entityManager.find(String.class, 1L)).thenReturn(new Object());
+        when(entityManager.find(Object.class, 1L)).thenReturn(123L);
         assertTrue(validator.isValid(1L, context));
     }
 }

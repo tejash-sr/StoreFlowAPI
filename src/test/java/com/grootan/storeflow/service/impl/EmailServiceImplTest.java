@@ -77,7 +77,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void sendHtmlEmail_logsErrorOnFailure() throws MessagingException {
+    void sendHtmlEmail_logsErrorOnFailure() {
         when(mailSender.createMimeMessage()).thenThrow(new RuntimeException("Mail server down"));
 
         emailService.sendWelcomeEmail("user@test.com", "John");

@@ -2,13 +2,11 @@ package com.grootan.storeflow.metrics;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
-@RequiredArgsConstructor
 public class OrderMetrics {
 
     private final Counter ordersPlacedCounter;

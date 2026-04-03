@@ -1,56 +1,49 @@
 package com.grootan.storeflow.metrics;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class OrderMetricsTest {
 
-    @Mock
-    private MeterRegistry meterRegistry;
-
-    @Mock
-    private Counter ordersPlacedCounter;
-
-    @Mock
-    private Counter revenueCounter;
-
+    private SimpleMeterRegistry registry;
     private OrderMetrics orderMetrics;
 
     @BeforeEach
     void setUp() {
-        when(meterRegistry.register(any())).thenAnswer(invocation -> {
-            Counter counter = invocation.getArgument(0, Counter.class);
-            return counter;
-        });
-        when(meterRegistry.counter("orders.placed.count")).thenReturn(ordersPlacedCounter);
-        when(meterRegistry.counter("orders.revenue.total")).thenReturn(revenueCounter);
+        registry = new SimpleMeterRegistry();
+        orderMetrics = new OrderMetrics(registry);
     }
 
     @Test
     void recordOrderPlaced_incrementsCounter() {
-        orderMetrics = new OrderMetrics(meterRegistry);
-
         orderMetrics.recordOrderPlaced(new BigDecimal("100.00"));
 
-        verify(ordersPlacedCounter).increment();
+        double count = registry.counter("orders.placed.count").count();
+        assertEquals(1.0, count);
     }
 
     @Test
     void recordOrderPlaced_addsToRevenue() {
-        orderMetrics = new OrderMetrics(meterRegistry);
-
         orderMetrics.recordOrderPlaced(new BigDecimal("250.50"));
 
-        verify(revenueCounter).increment(250.50);
+        double revenue = registry.counter("orders.revenue.total").count();
+        assertEquals(250.50, revenue);
+    }
+
+    @Test
+    void recordOrderPlaced_multipleOrders_accumulate() {
+        orderMetrics.recordOrderPlaced(new BigDecimal("100.00"));
+        orderMetrics.recordOrderPlaced(new BigDecimal("200.00"));
+
+        double count = registry.counter("orders.placed.count").count();
+        double revenue = registry.counter("orders.revenue.total").count();
+
+        assertEquals(2.0, count);
+        assertEquals(300.0, revenue);
     }
 }
