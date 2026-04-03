@@ -37,6 +37,9 @@ public class ProductServiceTest {
     @Mock
     private ProductMapper productMapper;
 
+    @Mock
+    private com.grootan.storeflow.service.FileStorageService fileStorageService;
+
     @InjectMocks
     private ProductServiceImpl productService;
 

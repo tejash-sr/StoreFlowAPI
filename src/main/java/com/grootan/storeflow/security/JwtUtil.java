@@ -17,11 +17,14 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private String secret = "defaultSecretKeyWithAtLeast256BitsLength12345678901234567890";
+    @Value("${jwt.secret}")
+    private String secret;
 
-    private long jwtExpirationMs = 3600000;
+    @Value("${jwt.access-token-expiry}")
+    private long jwtExpirationMs;
     
-    private long refreshExpirationMs = 86400000;
+    @Value("${jwt.refresh-token-expiry}")
+    private long refreshExpirationMs;
 
     private SecretKey key;
 

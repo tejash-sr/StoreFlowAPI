@@ -15,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -36,6 +37,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/refresh").permitAll()
                 .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password/**").permitAll()
                 .requestMatchers("/api/health", "/actuator/health").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/orders/*/status").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("USER")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

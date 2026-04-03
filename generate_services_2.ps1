@@ -83,7 +83,7 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
 
             if (product.getStock() < itemDto.getQuantity()) {
-                throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
+                throw new InsufficientStockException(product.getSku(), itemDto.getQuantity(), product.getStock());
             }
 
             // Deduct stock
@@ -103,7 +103,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount = totalAmount.add(subtotal);
         }
 
-        order.setOrderItems(items);
+        order.setItems(items);
         order.setTotalAmount(totalAmount);
         
         Order savedOrder = orderRepository.save(order);
@@ -134,13 +134,13 @@ public class OrderServiceImpl implements OrderService {
         try {
             newStatus = OrderStatus.valueOf(requestDto.getStatus().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidStatusTransitionException("Invalid status provided");
+            throw new com.grootan.storeflow.exceptions.AppException("Invalid status provided", org.springframework.http.HttpStatus.BAD_REQUEST);
         }
         
         // Very basic valid transition check (Phase 3 requirements)
         // e.g. CANCELLED -> DELIVERED is invalid.
         if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.DELIVERED) {
-            throw new InvalidStatusTransitionException("Cannot transition from " + order.getStatus() + " to " + newStatus);
+            throw new InvalidStatusTransitionException(order.getStatus().name(), newStatus.name());
         }
         
         order.setStatus(newStatus);

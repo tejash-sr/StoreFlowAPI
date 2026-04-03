@@ -1,6 +1,7 @@
 package com.grootan.storeflow.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grootan.storeflow.TestMailConfig;
 import com.grootan.storeflow.dto.request.OrderItemRequestDto;
 import com.grootan.storeflow.dto.request.OrderRequestDto;
 import com.grootan.storeflow.dto.request.ShippingAddressDto;
@@ -18,6 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -30,10 +34,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(TestMailConfig.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.security.test.context.support.WithUserDetails(value="test@example.com", setupBefore = org.springframework.security.test.context.support.TestExecutionEvent.TEST_EXECUTION)
+@WithMockUser(username = "test@example.com", roles = {"USER"})
 public class OrderControllerIntegrationTest {
 
     @Autowired
@@ -55,7 +60,7 @@ public class OrderControllerIntegrationTest {
     private OrderRepository orderRepository;
 
     @Autowired
-    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+    private PasswordEncoder passwordEncoder;
 
     private User user;
     private Product product;
@@ -67,11 +72,14 @@ public class OrderControllerIntegrationTest {
         categoryRepository.deleteAll();
         userRepository.deleteAll();
 
-        user = new User();
-        jdbcTemplate.update(
-            "INSERT INTO users (id, email, password, full_name, role, enabled) VALUES (?, ?, ?, ?, ?, ?)",
-            UUID.fromString("00000000-0000-0000-0000-000000000001"), "test@example.com", "password", "Test User", "USER", true
-        );
+        user = User.builder()
+                .email("test@example.com")
+                .password(passwordEncoder.encode("password123"))
+                .fullName("Test User")
+                .role(Role.USER)
+                .enabled(true)
+                .build();
+        user = userRepository.save(user);
 
         Category category = new Category();
         category.setName("Electronics");
@@ -99,7 +107,7 @@ public class OrderControllerIntegrationTest {
 
         OrderItemRequestDto item = new OrderItemRequestDto();
         item.setProductId(product.getId());
-        item.setQuantity(2); // total will be 1000
+        item.setQuantity(2);
 
         request.setItems(List.of(item));
 
@@ -123,13 +131,13 @@ public class OrderControllerIntegrationTest {
 
         OrderItemRequestDto item = new OrderItemRequestDto();
         item.setProductId(product.getId());
-        item.setQuantity(50); // stock is 20
+        item.setQuantity(50);
 
         request.setItems(List.of(item));
 
         mockMvc.perform(post("/api/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict()); // Because InsufficientStockException is mapped to 409
+                .andExpect(status().isConflict());
     }
 }
