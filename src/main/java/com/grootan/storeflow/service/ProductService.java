@@ -9,7 +9,8 @@ import java.util.UUID;
 
 public interface ProductService {
     ProductResponseDto createProduct(ProductRequestDto requestDto);
-    Page<ProductResponseDto> getAllProducts(Pageable pageable);
+    Page<ProductResponseDto> getAllProducts(String name, String category, String status, Double minPrice, Double maxPrice, Pageable pageable);
+    java.util.List<ProductResponseDto> getLowStockProducts(int threshold);
     ProductResponseDto getProductById(UUID id);
     ProductResponseDto updateProduct(UUID id, ProductRequestDto requestDto);
     ProductResponseDto updateStock(UUID id, StockUpdateRequestDto requestDto);
