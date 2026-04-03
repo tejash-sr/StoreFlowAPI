@@ -19,10 +19,8 @@ public class CsvExportServiceImpl implements CsvExportService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              PrintWriter pw = new PrintWriter(baos)) {
             
-            // Header
             pw.println("Reference Number,Status,Total Amount,Created At,Item Count");
             
-            // Rows
             for (OrderResponseDto order : orders) {
                 int itemCount = order.getItems() != null ? order.getItems().size() : 0;
                 String row = String.format("%s,%s,%s,%s,%d", 

@@ -15,7 +15,7 @@ public class CursorPaginationUtil {
         try {
             return new String(Base64.getDecoder().decode(cursor), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException e) {
-            return null; // or throw BadRequestException
+            return null;
         }
     }
 }

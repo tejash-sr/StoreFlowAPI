@@ -10,15 +10,20 @@ import com.grootan.storeflow.models.Category;
 import com.grootan.storeflow.models.Product;
 import com.grootan.storeflow.repository.CategoryRepository;
 import com.grootan.storeflow.repository.ProductRepository;
+import com.grootan.storeflow.repository.ProductSpecification;
+import com.grootan.storeflow.service.FileStorageService;
 import com.grootan.storeflow.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
-    private final com.grootan.storeflow.service.FileStorageService fileStorageService;
+    private final FileStorageService fileStorageService;
 
     @Override
     @Transactional
@@ -51,11 +56,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponseDto> getAllProducts(String name, String category, String status, Double minPrice, Double maxPrice, Pageable pageable) {
-        org.springframework.data.jpa.domain.Specification<Product> spec = org.springframework.data.jpa.domain.Specification
-                .where(com.grootan.storeflow.repository.ProductSpecification.hasNamePartial(name))
-                .and(com.grootan.storeflow.repository.ProductSpecification.hasCategory(category))
-                .and(com.grootan.storeflow.repository.ProductSpecification.hasStatus(status))
-                .and(com.grootan.storeflow.repository.ProductSpecification.hasPriceBetween(minPrice, maxPrice));
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasNamePartial(name))
+                .and(ProductSpecification.hasCategory(category))
+                .and(ProductSpecification.hasStatus(status))
+                .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice));
 
         return productRepository.findAll(spec, pageable).map(productMapper::toDto);
     }
@@ -70,10 +75,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public java.util.List<ProductResponseDto> getLowStockProducts(int threshold) {
+    public List<ProductResponseDto> getLowStockProducts(int threshold) {
         return productRepository.findLowStockProducts(threshold).stream()
                 .map(productMapper::toDto)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -12,6 +12,7 @@ import com.grootan.storeflow.repository.UserRepository;
 import com.grootan.storeflow.security.CustomUserDetails;
 import com.grootan.storeflow.security.JwtUtil;
 import com.grootan.storeflow.service.AuthService;
+import com.grootan.storeflow.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,8 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
     private final UserDetailsService userDetailsService;
-    private final com.grootan.storeflow.service.FileStorageService fileStorageService;
-    private final com.grootan.storeflow.service.EmailService emailService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -141,33 +141,6 @@ public class AuthServiceImpl implements AuthService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
             return userMapper.toDto(((CustomUserDetails) auth.getPrincipal()).getUser());
-        }
-        throw new AuthenticationFailedException("User not authenticated");
-    }
-
-    @Override
-    @Transactional
-    public UserResponseDto uploadAvatar(org.springframework.web.multipart.MultipartFile file) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
-            User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-            String fileName = fileStorageService.saveAvatar(file, "avatars");
-            user.setAvatarPath(fileName);
-            userRepository.save(user);
-            return userMapper.toDto(user);
-        }
-        throw new AuthenticationFailedException("User not authenticated");
-    }
-
-    @Override
-    public org.springframework.core.io.Resource getAvatar() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
-            User user = ((CustomUserDetails) auth.getPrincipal()).getUser();
-            if (user.getAvatarPath() == null) {
-                throw new com.grootan.storeflow.exceptions.ResourceNotFoundException("No avatar found for user: " + user.getId());
-            }
-            return fileStorageService.loadFile(user.getAvatarPath(), "avatars");
         }
         throw new AuthenticationFailedException("User not authenticated");
     }

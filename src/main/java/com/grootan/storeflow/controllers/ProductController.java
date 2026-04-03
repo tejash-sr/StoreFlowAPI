@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -39,12 +40,6 @@ public class ProductController {
     @GetMapping("/{id}")
     public ProductResponseDto getProductById(@PathVariable UUID id) {
         return productService.getProductById(id);
-    }
-
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/low-stock")
-    public java.util.List<ProductResponseDto> getLowStockProducts(@RequestParam(defaultValue = "10") int threshold) {
-        return productService.getLowStockProducts(threshold);
     }
 
     @PutMapping("/{id}")

@@ -77,10 +77,9 @@ public class FileStorageServiceImpl implements FileStorageService {
             Path targetDir = rootLocation.resolve(subDirectory);
             Files.createDirectories(targetDir);
 
-            String newFileName = UUID.randomUUID().toString() + ".jpg"; // enforce jpg format for avatars
+            String newFileName = UUID.randomUUID().toString() + ".jpg";
             Path destinationFile = targetDir.resolve(newFileName).normalize().toAbsolutePath();
 
-            // Use Thumbnailator for resizing
             Thumbnails.of(file.getInputStream())
                     .size(200, 200)
                     .outputFormat("jpg")

@@ -9,6 +9,5 @@ public interface FileStorageService {
     Resource loadFile(String fileName, String subDirectory);
     void deleteFile(String fileName, String subDirectory);
     
-    // Specifically for avatar resize
     String saveAvatar(MultipartFile file, String subDirectory);
 }

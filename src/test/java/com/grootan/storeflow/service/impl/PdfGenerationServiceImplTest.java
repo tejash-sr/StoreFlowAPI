@@ -37,7 +37,6 @@ public class PdfGenerationServiceImplTest {
         assertNotNull(pdf);
         assertTrue(pdf.length > 0);
         
-        // Simple check to ensure it has PDF header
         assertEquals("%PDF", new String(pdf, 0, 4));
     }
         
