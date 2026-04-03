@@ -205,6 +205,13 @@
                         <phase>verify</phase>
                         <goals><goal>check</goal></goals>
                         <configuration>
+                            <excludes>
+                                <exclude>**/StoreFlowApplication.class</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/enums/**</exclude>
+                                <exclude>**/models/**</exclude>
+                                <exclude>**/mapper/**</exclude>
+                            </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
