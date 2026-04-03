@@ -10,6 +10,7 @@ import com.grootan.storeflow.models.Category;
 import com.grootan.storeflow.models.Product;
 import com.grootan.storeflow.repository.CategoryRepository;
 import com.grootan.storeflow.repository.ProductRepository;
+import com.grootan.storeflow.service.FileStorageService;
 import com.grootan.storeflow.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final FileStorageService fileStorageService;
 
     @Override
     @Transactional
@@ -106,5 +108,27 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.DISCONTINUED);
         product.setDeletedAt(OffsetDateTime.now());
         productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponseDto uploadProductImage(UUID id, org.springframework.web.multipart.MultipartFile file) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        String fileName = fileStorageService.saveFile(file, "products");
+        product.setImageUrl(fileName);
+        productRepository.save(product);
+        return productMapper.toDto(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource getProductImage(UUID id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        if (product.getImageUrl() == null) {
+            throw new ResourceNotFoundException("No image found for product with id: " + id);
+        }
+        return fileStorageService.loadFile(product.getImageUrl(), "products");
     }
 }

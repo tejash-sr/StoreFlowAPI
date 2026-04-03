@@ -14,4 +14,7 @@ public interface ProductService {
     ProductResponseDto updateProduct(UUID id, ProductRequestDto requestDto);
     ProductResponseDto updateStock(UUID id, StockUpdateRequestDto requestDto);
     void deleteProduct(UUID id);
+    
+    ProductResponseDto uploadProductImage(UUID id, org.springframework.web.multipart.MultipartFile file);
+    org.springframework.core.io.Resource getProductImage(UUID id);
 }
